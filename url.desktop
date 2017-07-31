@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=My script
+Comment=Test hello world script
+Exec=/Users/mdobbali/Google Drive/2017/Work_2.0/Git/URLChecker/yourscript.sh
+Icon=/Users/mdobbali/Google Drive/2017/Work_2.0/Git/URLChecker/sign-check-icon.png
+Terminal=True
+Type=Application

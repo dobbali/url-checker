@@ -6,6 +6,8 @@ Broken URL Checker is a tool to check for URLs which are broken in AdWords Campa
 """
 
 import logging
+import datetime
+import sys, os
 from googleads import adwords
 import time
 import urllib.request
@@ -35,7 +37,7 @@ class DataPull():
         Selection if url checking needs to be done for all the campaigns or all the site links. By default, it is all campaigns.
     """
 
-    def __init__(self):
+    def __init__(self, path):
         """
         Initializing DataPull object.
 
@@ -47,16 +49,21 @@ class DataPull():
         """
 
         self.reg_expression = re.compile('\["([\s\S]*)"\]')
+        self.path = path
 
 
-    def run(self):
+    def run(self, campaign):
         """
         Preparing data for URL checking process.
 
         """
-        self.all_site_link_pull_data()
-        campaign_index = pd.read_csv("data/campaign_index.csv", encoding= "ISO-8859-1")
-        self.all_camp_pull_data(campaign_index)
+        if campaign == "site links":
+            self.all_site_link_pull_data()
+        else:
+            #campaign_index = pd.read_csv("data/campaign_index.csv", encoding= "ISO-8859-1")
+            #final_path = self.path + "/"+ datetime.datetime.today().strftime('%Y-%m-%d')+"-campaign_reports/" + campaign + ".csv"
+            final_path = self.path + "/"+campaign +  ".csv"
+            self.pull_data(final_path,campaign)
         return 
 
 
@@ -73,36 +80,42 @@ class DataPull():
                                   'predicates': [
                                  #{'field': 'CampaignId', 'operator': 'IN', 'values': [50899044]},
                                  {'field': 'CampaignStatus', 'operator': 'IN', 'values': ['ENABLED']},
-                                 {'field': 'PlaceholderType', 'operator': 'IN', 'values':[1]}
+                                 # {'field': 'PlaceholderType', 'operator': 'IN', 'values':[1]}
                                             ]
                                         }
                              }
-        file_path = "data/campaign_reports/site_links.csv"
-        df = self.pull_data( file_path, report = site_link_report)
+        file_path_site_links = self.path + "/site_links.csv"#+ "/"+ datetime.datetime.today().strftime('%Y-%m-%d')+"-campaign_reports/site_links.csv"
+        df = self.pull_data(file_path_site_links, report = site_link_report)
         df = df.reset_index(drop=True)
         df = df.apply(self.url_extract, axis=1)
-        df.to_csv(file_path)
+        df.to_csv(file_path_site_links)
+
+    def generate_campaign_index(self, list_of_campaigns, master_index):
+        df = master_index[master_index['Campaign'].isin(list_of_campaigns)]
+        df.to_csv(self.path+"/data/"+"campaign_index.csv")
+        return df
+
+    # def all_camp_pull_data(self, campaign):
+    #     """
+    #     function to pull URL data for all the campaigns. It takes campaign_index dataframe which has name and campaign ID as columns
+    #     """
+    #     # final_camp = campaign_index[campaign_index["IO"] == "in"]
+    #     #final_camp = final_camp.reset_index(drop=True)
+    #     final_camp = campaign_index
+    #     os.mkdir(self.path+"/campaign_reports")
+    #     for index in list(final_camp.index):
+    #         #camp_id = final_camp["Campaign ID"].iloc[index]
+    #         camp_name = final_camp["Campaign"].iloc[index]
+    #         file_path = self.path+"/campaign_reports/"+camp_name+".csv"
+    #         df = self.pull_data(file_path, campName=camp_name)
+    #         df = df.rename(index=None, columns={"Final URL": "FinalURL", "Ad group": "AdGroup",
+    #                                             "Custom parameter": "CustomParameter", "Campaign ID": "CampaignID"})
+    #         df = df.reset_index(drop=True)
+    #         df = df.apply(self.url_extract, axis=1)
+    #         df.to_csv(file_path)
 
 
-    def all_camp_pull_data(self, campaign_index):
-        """
-        function to pull URL data for all the campaigns. It takes campaign_index dataframe which has name and campaign ID as columns
-        """
-        final_camp = campaign_index[campaign_index["IO"] == "in"]
-        final_camp = final_camp.reset_index(drop=True)
-        for index in list(final_camp.index):
-            camp_id = final_camp["Campaign ID"].iloc[index]
-            camp_name = final_camp["Campaign"].iloc[index]
-            file_path = "data/campaign_reports/"+camp_name+".csv"
-            df = self.pull_data(file_path, campID=camp_id)
-            df = df.rename(index=None, columns={"Final URL": "FinalURL", "Ad group": "AdGroup",
-                                                "Custom parameter": "CustomParameter", "Campaign ID": "CampaignID"})
-            df = df.reset_index(drop=True)
-            df = df.apply(self.url_extract, axis=1)
-            df.to_csv(file_path)
-
-
-    def pull_data(self,filepath, campID = None, report=None,skip_report_header=True, skip_column_header=False, skip_report_summary=True):
+    def pull_data(self,filepath, campName = None, report=None,skip_report_header=True, skip_column_header=False, skip_report_summary=True):
         """
         Creating API connection and pulls reports into CSV in data folder in current directory
 
@@ -133,18 +146,34 @@ class DataPull():
 
 
         # Create report definition.
-        if report == None:
+        if report == None and campName != "All":
             report = {
                   'reportName':'AdGroupReport',
                   'dateRangeType': 'YESTERDAY',
                   'reportType':'KEYWORDS_PERFORMANCE_REPORT',
                   'downloadFormat': 'CSV',
                   'selector': {
-                            'fields':['FinalUrls', 'UrlCustomParameters','CampaignName'],
-                            'predicates': [{'field': 'CampaignId', 'operator': 'IN', 'values': [campID]},
+                            'fields':['FinalUrls', 'UrlCustomParameters','CampaignName','Criteria','Id'],
+                            'predicates': [{'field': 'CampaignName', 'operator': 'IN', 'values': [campName]},
                                            {'field': 'AdGroupStatus',
                                             'operator': 'IN',
-                                            'values': ['ENABLED', 'PAUSED']}
+                                            'values': ['ENABLED']}
+                                ]
+                        }
+                     }
+
+        if report == None and campName == "All":
+            report = {
+                  'reportName':'AdGroupReport',
+                  'dateRangeType': 'YESTERDAY',
+                  'reportType':'KEYWORDS_PERFORMANCE_REPORT',
+                  'downloadFormat': 'CSV',
+                  'selector': {
+                            'fields':['FinalUrls', 'UrlCustomParameters','CampaignName','Criteria','Id'],
+                            'predicates': [#{'field': 'CampaignName', 'operator': 'IN', 'values': [campName]},
+                                           {'field': 'AdGroupStatus',
+                                            'operator': 'IN',
+                                            'values': ['ENABLED']}
                                 ]
                         }
                      }
@@ -165,11 +194,13 @@ class DataPull():
         df = pd.read_csv(filepath)
         df = df.rename(columns={"Attribute Values":"Final URL"})
         df = df[df["Final URL"] != "--"]
-        print(df[df["Final URL"] == "--"])
+        print("Shape of Extracted data")
+        print(df.shape)
         df = df.rename(index=None, columns={"Final URL": "FinalURL", "Ad group": "AdGroup",
                                            "Custom parameter": "CustomParameter", "Campaign ID": "CampaignID","Campaign":"Identifier"})
+        df = df.apply(self.url_extract, axis=1)
         df.to_csv(filepath)
-        print("process completed!")
+        print("Data extraction process completed!")
 
         return df
 
@@ -202,7 +233,6 @@ class UrlCheck():
 
     def __init__(self):
 
-
         self.USER_AGENT = 'User-agent'
         self.ACCEPT = 'Accept'
         self.ACCEPT_ENCODING = 'Accept-Encoding'
@@ -228,6 +258,7 @@ class UrlCheck():
                         self.CONNECTION: self.CONNECTION_DEFAULT}
 
         self.USER_HEADERS = [self.HEADER_FIREFOX_MAC, self.HEADER_CHROME_WINDOWS]
+        #self.path = path
 
 
     def map_results(self, result_dict, main_df):
@@ -242,7 +273,7 @@ class UrlCheck():
 
         start = time.ctime()
         print(start)
-        pT = ThreadPool(100)
+        pT = ThreadPool(128)
         results = pT.map_async(self.get_request, url_list)
         pT.close()
         pT.join()
@@ -251,7 +282,7 @@ class UrlCheck():
         for i in results.get():
             all_req.append(i)
 
-        pP = Pool(20)
+        pP = Pool(10)
         results = pP.map_async(self.get_count, all_req)
         pP.close()
         pP.join()

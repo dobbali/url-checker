@@ -8,9 +8,9 @@ Campaign ID,Campaign,IO
 59781444,Adchemy_BedBath-phoiac_4,out
 59781324,Adchemy_BedBath-phoiac_5,out
 61098924,Adchemy_BedBath-phoiac_6,out
-623640892,API_Test_Campaign,out
-628775162,API_Test_Campaign_2,out
-721429091,API_Test_Campaign_3,out
+623640892,API_Test_Campaign,in
+628775162,API_Test_Campaign_2,in
+721429091,API_Test_Campaign_3,in
 607915153,Area Rugs Display,out
 383979444,Attribute Test,out
 17766504,B- Electronics,out
@@ -162,10 +162,10 @@ Campaign ID,Campaign,IO
 50980884,Hobbies & Toys_2007,out
 252935484,Holiday_KCT_Display,out
 252293604,Holiday_KCT_Display do not use,out
-196753524,Home D’©cor_Companion,out
-52432044,Home D’©cor_Content,out
-51899124,Home D’©cor_Local,out
-58520484,Home D’©cor_Mobile,out
+196753524,Home Dí©cor_Companion,out
+52432044,Home Dí©cor_Content,out
+51899124,Home Dí©cor_Local,out
+58520484,Home Dí©cor_Mobile,out
 614637005,Home Improvement Restructure,out
 416099364,jewelry restructure,out
 415694604,Jewelry Restructure take one,out
@@ -208,8 +208,8 @@ Campaign ID,Campaign,IO
 135973884,US Hispanic - Bedding SP,out
 136091004,US Hispanic - Furniture EN,out
 135984564,US Hispanic - Furniture SP,out
-136091244,US Hispanic - Home D’©cor EN,out
-135984924,US Hispanic - Home D’©cor SP,out
+136091244,US Hispanic - Home Dí©cor EN,out
+135984924,US Hispanic - Home Dí©cor SP,out
 136091484,US Hispanic - Jewelry EN,out
 135083244,US Hispanic - Jewelry SP,out
 53401764,Watches - XML,out

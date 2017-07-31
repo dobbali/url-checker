@@ -2,6 +2,7 @@ import pandas as pd
 from urlchecker import DataPull, UrlCheck, EmailAlert
 import glob
 
+
 def main():
     get_data = DataPull()
     get_data.run()
